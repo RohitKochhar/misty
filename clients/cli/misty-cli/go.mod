@@ -6,7 +6,10 @@ require (
 	github.com/gorilla/mux v1.8.0
 	github.com/spf13/cobra v1.6.1
 	github.com/spf13/viper v1.14.0
+	rohitsingh/misty-utils v0.0.0
 )
+
+replace rohitsingh/misty-utils => ../../../misty-utils
 
 require (
 	github.com/fsnotify/fsnotify v1.6.0 // indirect
