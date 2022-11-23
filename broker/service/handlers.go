@@ -50,6 +50,15 @@ func addListenerHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	log.Printf("Adding new listener %s to topic=%s", string(listener), topic)
-	// Do somethign to actually add the listener here
-	replyTextContent(w, r, http.StatusAccepted, "accepted new listener")
+	// Add the listener to the repository
+	if err := repo.NewListener(string(listener)); err != nil {
+		log.Printf("error while adding listener (%s): %q", string(listener), err)
+	} else {
+		// If adding the listener was successful, add the topic to it
+		if err := repo.AddTopicToListener(string(listener), topic); err != nil {
+			log.Printf("error while adding topic (%s) to listener (%s): %q", topic, string(listener), err)
+		}
+		replyTextContent(w, r, http.StatusAccepted, "accepted new listener")
+	}
+	log.Printf("Successfully added listener %s to topic=%s", string(listener), topic)
 }

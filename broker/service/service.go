@@ -4,13 +4,19 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"rohitsingh/misty-broker/repository"
 
 	"github.com/gorilla/mux"
 	"github.com/spf13/viper"
 )
 
+var repo repository.Repository
+
 // Run configures a HTTP server and listens for incoming requests
 func Run() error {
+	// Create a repository to contain listener data
+	// ToDo: Add handling to change repo type depending on config
+	repo = repository.NewInMemoryRepository()
 	// Load configuration variables from viper
 	host := viper.GetString("host")
 	port := viper.GetInt("port")

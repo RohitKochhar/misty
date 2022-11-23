@@ -9,10 +9,13 @@ import (
 
 // Broadcast sends a published message to all subscribed clients
 func Broadcast(topic string, message string) error {
-	// ToDo: Get the listening clients from some persistent location
-	listeners := []string{"localhost:1111"}
+	// Get all the listeners associated with the topic from the repository
+	listeners, err := repo.GetTopicListeners(topic)
+	if err != nil {
+		return err
+	}
 	for _, l := range listeners {
-		httpUrl := fmt.Sprintf("http://%s/%s", l, topic)
+		httpUrl := fmt.Sprintf("%s/%s", l, topic)
 		log.Printf("Broadcasting %s to %s", message, httpUrl)
 		req, err := http.NewRequest(
 			http.MethodPut,
