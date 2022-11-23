@@ -1,2 +1,3 @@
 host: localhost
 port: 1315
+repositoryType: in-memory
