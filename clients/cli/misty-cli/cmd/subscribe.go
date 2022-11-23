@@ -30,7 +30,7 @@ import (
 
 // subscribeCmd represents the subscribe command
 var subscribeCmd = &cobra.Command{
-	Use:   "subscribe",
+	Use:   "subscribe -H {BROKER_HOSTNAME} -p {BROKER_PORT} -t {TOPIC}",
 	Short: "subscribe listens for message on a specified topic",
 	Long: `
 subscribe listens for message on a specified topic

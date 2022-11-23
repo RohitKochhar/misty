@@ -2,6 +2,7 @@ package actions
 
 import (
 	"fmt"
+	"log"
 	"net/http"
 	"rohitsingh/misty-cli/utils"
 )
@@ -20,6 +21,6 @@ func Publish(host string, port int, topic string, message string) error {
 	if err := utils.PutString(httpUrl, message, http.StatusOK); err != nil {
 		return err
 	}
-	fmt.Printf("[PUBLISH] %s --> %s\n", message, httpUrl)
+	log.Printf("[PUBLISH] %s --> %s\n", message, httpUrl)
 	return nil
 }

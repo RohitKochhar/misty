@@ -49,13 +49,15 @@ func SubscribeAction(brokerHost string, brokerPort int, topic string) error {
 	exitCh := make(chan os.Signal, 1)
 	signal.Notify(exitCh, os.Interrupt, syscall.SIGTERM)
 	go func() {
-		// ToDo: Add context handling for graceful shutdown
 		if err := http.ListenAndServe(fmt.Sprintf(":%d", listenerPort), r); err != nil {
 			errCh <- err
 		}
 	}()
 	select {
 	case err := <-errCh:
+		if err := removeListener(brokerHost, brokerPort, listenerHost, listenerPort); err != nil {
+			log.Panicf("couldn't remove listener from broker list due to error: %q", err)
+		}
 		log.Println(err)
 	case <-exitCh:
 		log.Println("Received termination signal, closing listener...")

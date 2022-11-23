@@ -34,7 +34,7 @@ var cfgFile string
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
 	Use:     "misty-cli",
-	Version: "0.1",
+	Version: "1.0",
 	Short:   "CLI client to communicate with misty brokers",
 	Long: `
 CLI client to communicate with misty brokers

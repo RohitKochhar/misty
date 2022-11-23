@@ -30,7 +30,7 @@ import (
 
 // publishCmd represents the publish command
 var publishCmd = &cobra.Command{
-	Use:   "publish",
+	Use:   "publish -H {BROKER_HOSTNAME} -p {BROKER_PORT} -t {TOPIC} -m {MESSAGE}",
 	Short: "publish sends a payload to a message topic",
 	Long: `
 publish sends a payload to a message topic
