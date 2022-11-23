@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
-	"rohitsingh/misty-cli/utils"
+	utils "rohitsingh/misty-utils"
 )
 
 // Publish sends a PUT request to send a given
