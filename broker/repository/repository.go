@@ -10,4 +10,6 @@ type Repository interface {
 	// GetTopicListeners method returns all listener addresses that
 	// have subscribed to a given topic
 	GetTopicListeners(topic string) ([]string, error)
+	// DeleteListener method removes a listener from the list
+	DeleteListener(listenerAddr string) error
 }

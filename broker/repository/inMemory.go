@@ -31,6 +31,8 @@ func NewInMemoryRepository() *inMemoryRepository {
 // NewListener method adds a listener string (i.e. "localhost:1111")
 // to the list of listeners, but does not attach any topics yet
 func (r *inMemoryRepository) NewListener(listenerAddr string) error {
+	r.Lock()
+	defer r.Unlock()
 	// Check that the listener isn't already in the repository
 	if _, ok := r.listeners[listenerAddr]; ok {
 		return fmt.Errorf("%w: %s", ErrListenerExists, listenerAddr)
@@ -43,6 +45,8 @@ func (r *inMemoryRepository) NewListener(listenerAddr string) error {
 // AddTopicToListener method adds a topic to an existing listener,
 // returns an error if the Listener is not found in the list
 func (r *inMemoryRepository) AddTopicToListener(listenerAddr string, topic string) error {
+	r.Lock()
+	defer r.Unlock()
 	// Check that the listener is in the repository
 	if _, ok := r.listeners[listenerAddr]; !ok {
 		return fmt.Errorf("%w: %s", ErrListenerNotFound, listenerAddr)
@@ -64,6 +68,8 @@ func (r *inMemoryRepository) GetTopicListeners(topic string) ([]string, error) {
 	// ToDo: Reduce complexity here (currently = #listeners * #topicsPerListener)
 	// ToDo: Add some error handling here
 	var topicListeners []string
+	r.RLock()
+	defer r.RUnlock()
 	// Iterate through each listener in the repository
 	for l, subscribedTopics := range r.listeners {
 		// Check if the given topic is in the list
@@ -75,4 +81,12 @@ func (r *inMemoryRepository) GetTopicListeners(topic string) ([]string, error) {
 		}
 	}
 	return topicListeners, nil
+}
+
+// DeleteListener method removes a listener from the list
+func (r *inMemoryRepository) DeleteListener(listenerAddr string) error {
+	r.Lock()
+	defer r.Unlock()
+	delete(r.listeners, listenerAddr)
+	return nil
 }

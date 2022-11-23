@@ -5,9 +5,13 @@ import (
 	"io"
 	"log"
 	"net/http"
+	"os"
+	"os/signal"
 	"rohitsingh/misty-cli/utils"
+	"syscall"
 
 	"github.com/gorilla/mux"
+	"github.com/spf13/viper"
 )
 
 // SubscribeAction creates a server to accept messages by the broker
@@ -18,9 +22,16 @@ func SubscribeAction(brokerHost string, brokerPort int, topic string) error {
 		return err
 	}
 	// Define the parameters used by the listener as a HTTP server
-	// ToDo: Dynamically get configuration
-	listenerHost := "localhost"
-	listenerPort := 1111
+	var (
+		listenerHost string
+		listenerPort int
+	)
+	if listenerHost = viper.GetString("host"); listenerHost == "" {
+		listenerHost = "localhost"
+	}
+	if listenerPort = viper.GetInt("port"); listenerPort == 0 {
+		listenerPort = 1111
+	}
 	// Send a PUT request to the server to
 	// let it know we are interested in the topic
 	log.Printf("Sending subscribe request to broker at %s:%d...\n", brokerHost, brokerPort)
@@ -33,9 +44,25 @@ func SubscribeAction(brokerHost string, brokerPort int, topic string) error {
 	r := mux.NewRouter()
 	r.HandleFunc(topic, subscribeHandler).Methods(http.MethodPut)
 	log.Printf("listening for messages on %s...\n", topic)
-	// ToDo: Add context handling for graceful shutdown
-	if err := http.ListenAndServe(fmt.Sprintf(":%d", listenerPort), r); err != nil {
-		return err
+	// Create goroutine resources
+	errCh := make(chan error)
+	exitCh := make(chan os.Signal, 1)
+	signal.Notify(exitCh, os.Interrupt, syscall.SIGTERM)
+	go func() {
+		// ToDo: Add context handling for graceful shutdown
+		if err := http.ListenAndServe(fmt.Sprintf(":%d", listenerPort), r); err != nil {
+			errCh <- err
+		}
+	}()
+	select {
+	case err := <-errCh:
+		log.Println(err)
+	case <-exitCh:
+		log.Println("Received termination signal, closing listener...")
+		if err := removeListener(brokerHost, brokerPort, listenerHost, listenerPort); err != nil {
+			log.Panicf("couldn't remove listener from broker list due to error: %q", err)
+		}
+		log.Println("Removed listener from broker list")
 	}
 	return nil
 }
@@ -64,6 +91,18 @@ func requestSubscribe(brokerHost string, brokerPort int, listenerHost string, li
 	httpUrl := fmt.Sprintf("http://%s:%d/listeners%s/add", brokerHost, brokerPort, topic)
 	message := fmt.Sprintf("http://%s:%d", listenerHost, listenerPort)
 	if err := utils.PutString(httpUrl, message, http.StatusAccepted); err != nil {
+		return err
+	}
+	return nil
+}
+
+// removeListener sends a request to the server to remove the listener
+// from its data store
+func removeListener(brokerHost string, brokerPort int, listenerHost string, listenerPort int) error {
+	// Send a DELETE request to the server
+	httpUrl := fmt.Sprintf("http://%s:%d/listeners/delete", brokerHost, brokerPort)
+	message := fmt.Sprintf("%s:%d", listenerHost, listenerPort)
+	if err := utils.DeleteString(httpUrl, message, http.StatusOK); err != nil {
 		return err
 	}
 	return nil

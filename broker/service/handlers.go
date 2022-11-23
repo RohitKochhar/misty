@@ -58,7 +58,26 @@ func addListenerHandler(w http.ResponseWriter, r *http.Request) {
 		if err := repo.AddTopicToListener(string(listener), topic); err != nil {
 			log.Printf("error while adding topic (%s) to listener (%s): %q", topic, string(listener), err)
 		}
-		replyTextContent(w, r, http.StatusAccepted, "accepted new listener")
 	}
+	replyTextContent(w, r, http.StatusAccepted, "accepted new listener")
 	log.Printf("Successfully added listener %s to topic=%s", string(listener), topic)
+}
+
+func deleteListenerHandler(w http.ResponseWriter, r *http.Request) {
+	// Get the listener address from the body
+	listenerAddr, err := io.ReadAll(r.Body)
+	defer r.Body.Close()
+	if err != nil {
+		replyError(w, r, http.StatusInternalServerError, "Could not delete listener")
+		return
+	}
+	listener := string(listenerAddr)
+	log.Printf("Received request to delete listener: %s", listener)
+	// Delete the listener from the repository
+	if err := repo.DeleteListener(listener); err != nil {
+		replyError(w, r, http.StatusInternalServerError, "Could not delete listener")
+		return
+	}
+	replyTextContent(w, r, http.StatusOK, fmt.Sprintf("deleted listener %s", listener))
+	log.Printf("Successfully deleted listener: %s", listener)
 }

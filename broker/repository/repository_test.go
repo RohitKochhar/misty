@@ -46,10 +46,16 @@ func TestInMemoryRepoIntegration(t *testing.T) {
 	if len(topicListeners) != 2 {
 		t.Fatalf("expected topicListeners to contain %d listeners, instead got %d", 2, len(topicListeners))
 	}
-	expectedListeners := []string{"localhost:1111", "localhost:1112"}
-	for idx, listener := range topicListeners {
-		if listener != expectedListeners[idx] {
-			t.Fatalf("expected %q while iterating topic listeners, instead got %q", listener, expectedListeners[idx])
-		}
+	// Delete the first listener
+	if err := repo.DeleteListener("localhost:1111"); err != nil {
+		t.Fatalf("error while trying to delete listener: %q", err)
+	}
+	// Check that we have only one listener on the topic now
+	topicListeners, err = repo.GetTopicListeners("/topic")
+	if err != nil {
+		t.Fatalf("error while getting topic listeners for %s", "/topic")
+	}
+	if len(topicListeners) != 1 {
+		t.Fatalf("expected topicListeners to contain %d listeners, instead got %d", 1, len(topicListeners))
 	}
 }

@@ -20,7 +20,7 @@ func ReplyError(w http.ResponseWriter, r *http.Request, status int, message stri
 	http.Error(w, http.StatusText(status), status)
 }
 
-// PutString wraps a HTTP Get request in a function for easier usage and clarity
+// PutString wraps a HTTP PUT request in a function for easier usage and clarity
 func PutString(httpUrl string, message string, expCode int) error {
 	req, err := http.NewRequest(
 		http.MethodPut,
@@ -37,6 +37,27 @@ func PutString(httpUrl string, message string, expCode int) error {
 	}
 	if resp.StatusCode != expCode {
 		return fmt.Errorf("error while making PUT request: %s", http.StatusText(resp.StatusCode))
+	}
+	return nil
+}
+
+// DeleteString wraps a HTTP DELETE request in a function for easier usage and clarity
+func DeleteString(httpUrl string, message string, expCode int) error {
+	req, err := http.NewRequest(
+		http.MethodDelete,
+		httpUrl,
+		bytes.NewBuffer([]byte(message)),
+	)
+	if err != nil {
+		return fmt.Errorf("error while creating DELETE request: %q", err)
+	}
+	req.Header.Set("Content-Type", "text/plain")
+	resp, err := http.DefaultClient.Do(req)
+	if err != nil {
+		return fmt.Errorf("error while sending DELETE request: %q", err)
+	}
+	if resp.StatusCode != expCode {
+		return fmt.Errorf("error while making DELETE request: %s", http.StatusText(resp.StatusCode))
 	}
 	return nil
 }
