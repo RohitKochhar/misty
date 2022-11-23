@@ -9,6 +9,7 @@ import (
 	"os/signal"
 	utils "rohitsingh/misty-utils"
 	"syscall"
+	"time"
 
 	"github.com/gorilla/mux"
 )
@@ -83,9 +84,11 @@ func (l *Listener) Subscribe(topic string) error {
 func (l *Listener) Listen() error {
 	// Start an asynchronous HTTP server to receive messages from the broker
 	r := mux.NewRouter()
+	// Add a handler for path notified when the server goes down
+	r.HandleFunc("/broker/down", brokerDownHandle).Methods(http.MethodPut)
 	// Add a handler for each topic the listener is subscribed to
 	for _, topic := range l.topics {
-		r.HandleFunc(topic, onMessageReceive)
+		r.HandleFunc(topic, onMessageReceive).Methods(http.MethodPut)
 	}
 	// Create goroutine resources
 	l.errCh = make(chan error)
@@ -123,4 +126,15 @@ func onMessageReceive(w http.ResponseWriter, r *http.Request) {
 	}
 	utils.ReplyTextContent(w, r, http.StatusAccepted, "accepted packet")
 	log.Printf("[RECEIVED ON %s]: %s", r.URL.Path, string(message))
+}
+
+// brokerDownHandle handle closes the listener's server
+func brokerDownHandle(w http.ResponseWriter, r *http.Request) {
+	// Let the server know we got the message
+	utils.ReplyTextContent(w, r, http.StatusAccepted, "acknowledged")
+	// Log the server closure
+	log.Printf("misty broker closed, closing listener instance")
+	// Wait a second
+	time.Sleep(time.Second * 1)
+	os.Exit(1)
 }

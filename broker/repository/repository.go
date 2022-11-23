@@ -12,4 +12,6 @@ type Repository interface {
 	GetTopicListeners(topic string) ([]string, error)
 	// DeleteListener method removes a listener from the list
 	DeleteListener(listenerAddr string) error
+	// GetAllListeners method returns all listeners in the repository
+	GetAllListeners() ([]string, error)
 }

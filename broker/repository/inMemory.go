@@ -90,3 +90,12 @@ func (r *inMemoryRepository) DeleteListener(listenerAddr string) error {
 	delete(r.listeners, listenerAddr)
 	return nil
 }
+
+// GetAllListeners method returns all listeners in the repository
+func (r *inMemoryRepository) GetAllListeners() ([]string, error) {
+	var ls []string
+	for k := range r.listeners {
+		ls = append(ls, k)
+	}
+	return ls, nil
+}

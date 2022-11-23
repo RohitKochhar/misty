@@ -21,23 +21,6 @@ func Broadcast(topic string, message string) error {
 		if err := utils.PutString(httpUrl, message, http.StatusAccepted); err != nil {
 			return err
 		}
-
-		// req, err := http.NewRequest(
-		// 	http.MethodPut,
-		// 	httpUrl,
-		// 	bytes.NewBuffer([]byte(message)),
-		// )
-		// if err != nil {
-		// 	return fmt.Errorf("error while creating PUT request: %q", err)
-		// }
-		// req.Header.Set("Content-Type", "text/plain")
-		// resp, err := http.DefaultClient.Do(req)
-		// if err != nil {
-		// 	return fmt.Errorf("error while sending PUT request: %q", err)
-		// }
-		// if resp.StatusCode != http.StatusAccepted {
-		// 	return fmt.Errorf("error while making PUT request: %s", http.StatusText(resp.StatusCode))
-		// }
 	}
 	return nil
 }
@@ -45,6 +28,18 @@ func Broadcast(topic string, message string) error {
 // CloseConnections sends a PUT message to all subscribed clients
 // to let them know that the server is shutting down
 func CloseConnections() error {
-
+	// Get all the listeners associated with the broker
+	listeners, err := repo.GetAllListeners()
+	if err != nil {
+		return err
+	}
+	for _, l := range listeners {
+		// Send a PUT request to each listener with an empty
+		httpUrl := fmt.Sprintf("%s/broker/down", l)
+		log.Printf("Letting %s know broker is going down", l)
+		// Let the client know we are going down, but we can't
+		// handle errors (since we are going down)
+		_ = utils.PutString(httpUrl, "server going down!", http.StatusAccepted)
+	}
 	return nil
 }

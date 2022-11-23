@@ -62,10 +62,14 @@ func addListenerHandler(w http.ResponseWriter, r *http.Request) {
 			if err := repo.AddTopicToListener(string(listener), topic); err != nil {
 				log.Printf("error while adding topic (%s) to listener (%s): %q", topic, string(listener), err)
 			}
+			replyTextContent(w, r, http.StatusAccepted, "accepted new listener")
+			log.Printf("Successfully added listener %s to topic=%s", string(listener), topic)
+		} else {
+			replyTextContent(w, r, http.StatusAccepted, "accepted new listener")
+			log.Printf("Successfully added listener %s to broker list", string(listener))
 		}
 	}
-	replyTextContent(w, r, http.StatusAccepted, "accepted new listener")
-	log.Printf("Successfully added listener %s to topic=%s", string(listener), topic)
+
 }
 
 func deleteListenerHandler(w http.ResponseWriter, r *http.Request) {
@@ -98,13 +102,9 @@ func listenerSubscribeHandler(w http.ResponseWriter, r *http.Request) {
 		replyError(w, r, http.StatusInternalServerError, "Could not add new listener")
 		return
 	}
-	log.Printf("Subscribing listener %s to topic=%s", string(listener), topic)
-
-	// If adding the listener was successful, add the topic to it
 	if err := repo.AddTopicToListener(string(listener), topic); err != nil {
 		log.Printf("error while subscribing listener (%s) to topic (%s): %q", string(listener), topic, err)
 	}
-
 	replyTextContent(w, r, http.StatusAccepted, "subscribed listener to topic")
 	log.Printf("Subscribing listener %s to topic=%s", string(listener), topic)
 }
