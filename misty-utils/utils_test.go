@@ -2,7 +2,7 @@ package utils_test
 
 import (
 	"fmt"
-	"rohitsingh/misty-cli/utils"
+	utils "rohitsingh/misty-utils"
 	"testing"
 )
 

@@ -7,7 +7,7 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
-	"rohitsingh/misty-go/utils"
+	utils "rohitsingh/misty-utils"
 	"syscall"
 
 	"github.com/gorilla/mux"

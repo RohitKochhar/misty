@@ -4,7 +4,10 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"os"
+	"os/signal"
 	"rohitsingh/misty-broker/repository"
+	"syscall"
 
 	"github.com/gorilla/mux"
 	"github.com/spf13/viper"
@@ -24,8 +27,30 @@ func Run() error {
 	// Create a mux and listen and serve on it
 	r := NewMux()
 	// ToDo: Add a configuration parameter that specifies HTTPS/HTTP
-	if err := http.ListenAndServe(fmt.Sprintf(":%d", port), r); err != nil {
+	// Create goroutine resources
+	errCh := make(chan error)
+	exitCh := make(chan os.Signal, 1)
+	signal.Notify(exitCh, os.Interrupt, syscall.SIGTERM)
+	// Run server as a goroutine
+	go func() {
+		if err := http.ListenAndServe(fmt.Sprintf(":%d", port), r); err != nil {
+			errCh <- err
+		}
+	}()
+	select {
+	case err := <-errCh:
+		log.Println(err)
+		if err := CloseConnections(); err != nil {
+			return fmt.Errorf("couldn't send termination signal to listeners due to error: %q", err)
+		}
 		return err
+	case <-exitCh:
+		log.Println("Received termination signal, closing listener...")
+		if err := CloseConnections(); err != nil {
+			return fmt.Errorf("couldn't send termination signal to listeners due to error: %q", err)
+		}
+		log.Println("Successfully terminated all connections, shutting down now")
+		os.Exit(1)
 	}
 	return nil
 }
