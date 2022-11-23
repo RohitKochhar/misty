@@ -42,6 +42,8 @@ func publishHandler(w http.ResponseWriter, r *http.Request) {
 func addListenerHandler(w http.ResponseWriter, r *http.Request) {
 	// Get the topic that the listener wants to subscribe to
 	topic := mux.Vars(r)["topic"]
+	// If _ has been provided as the topic, don't add a topic to the listener
+	isConnectionRequest := topic == "_"
 	// Get the information about the listener from the packet body
 	listener, err := io.ReadAll(r.Body)
 	defer r.Body.Close()
@@ -54,9 +56,12 @@ func addListenerHandler(w http.ResponseWriter, r *http.Request) {
 	if err := repo.NewListener(string(listener)); err != nil {
 		log.Printf("error while adding listener (%s): %q", string(listener), err)
 	} else {
-		// If adding the listener was successful, add the topic to it
-		if err := repo.AddTopicToListener(string(listener), topic); err != nil {
-			log.Printf("error while adding topic (%s) to listener (%s): %q", topic, string(listener), err)
+		// Check if we are handling a basic connection request or a connect and subscribe
+		if !isConnectionRequest {
+			// If adding the listener was successful, add the topic to it
+			if err := repo.AddTopicToListener(string(listener), topic); err != nil {
+				log.Printf("error while adding topic (%s) to listener (%s): %q", topic, string(listener), err)
+			}
 		}
 	}
 	replyTextContent(w, r, http.StatusAccepted, "accepted new listener")
@@ -80,4 +85,26 @@ func deleteListenerHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	replyTextContent(w, r, http.StatusOK, fmt.Sprintf("deleted listener %s", listener))
 	log.Printf("Successfully deleted listener: %s", listener)
+}
+
+// listenerSubscribeHandler handles requests to add a topic to a listener's subscription list
+func listenerSubscribeHandler(w http.ResponseWriter, r *http.Request) {
+	// Get the topic that the listener wants to subscribe to
+	topic := mux.Vars(r)["topic"]
+	// Get the information about the listener from the packet body
+	listener, err := io.ReadAll(r.Body)
+	defer r.Body.Close()
+	if err != nil {
+		replyError(w, r, http.StatusInternalServerError, "Could not add new listener")
+		return
+	}
+	log.Printf("Subscribing listener %s to topic=%s", string(listener), topic)
+
+	// If adding the listener was successful, add the topic to it
+	if err := repo.AddTopicToListener(string(listener), topic); err != nil {
+		log.Printf("error while subscribing listener (%s) to topic (%s): %q", string(listener), topic, err)
+	}
+
+	replyTextContent(w, r, http.StatusAccepted, "subscribed listener to topic")
+	log.Printf("Subscribing listener %s to topic=%s", string(listener), topic)
 }

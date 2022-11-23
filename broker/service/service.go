@@ -38,6 +38,7 @@ func NewMux() http.Handler {
 	r.HandleFunc("/topic/{topic}", publishHandler).Methods(http.MethodPut)
 	r.HandleFunc("/listeners/{topic}/add", addListenerHandler).Methods(http.MethodPut)
 	r.HandleFunc("/listeners/delete", deleteListenerHandler).Methods(http.MethodDelete)
+	r.HandleFunc("/listeners/{topic}/subscribe", listenerSubscribeHandler).Methods(http.MethodPut)
 	return r
 }
 
