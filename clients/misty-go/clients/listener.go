@@ -1,4 +1,4 @@
-package listeners
+package clients
 
 import (
 	"fmt"
@@ -9,14 +9,12 @@ import (
 	"os/signal"
 	utils "rohitsingh/misty-utils"
 	"syscall"
-	"time"
 
 	"github.com/gorilla/mux"
 )
 
 // Listener type implements a Listener interface that
-// can only listen and reply to messages synchronously, blocking
-// any additional client processes from running while the listener runs
+// can only listens to messages synchronously
 type Listener struct {
 	listenerUrl  string   // URL that the broker sends requests to
 	listenerPort int      // Port to listen for incoming requests on
@@ -135,6 +133,5 @@ func brokerDownHandle(w http.ResponseWriter, r *http.Request) {
 	// Log the server closure
 	log.Printf("misty broker closed, closing listener instance")
 	// Wait a second
-	time.Sleep(time.Second * 1)
 	os.Exit(1)
 }
