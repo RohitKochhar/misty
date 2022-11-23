@@ -29,7 +29,8 @@ func NewMux() http.Handler {
 	r := mux.NewRouter()
 	// Root path is used as a liveness check
 	r.HandleFunc("/", rootHandler).Methods(http.MethodGet)
-	r.HandleFunc("/{topic}", publishHandler).Methods(http.MethodPut)
+	r.HandleFunc("/topic/{topic}", publishHandler).Methods(http.MethodPut)
+	r.HandleFunc("/listeners/{topic}/add", addListenerHandler).Methods(http.MethodPut)
 	return r
 }
 

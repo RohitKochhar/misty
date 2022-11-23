@@ -29,9 +29,27 @@ func publishHandler(w http.ResponseWriter, r *http.Request) {
 	message, err := io.ReadAll(r.Body)
 	defer r.Body.Close()
 	if err != nil {
-		replyError(w, r, http.StatusInternalServerError, "Could not ready request body")
+		replyError(w, r, http.StatusInternalServerError, "Could not read request body")
 		return
 	}
 	log.Printf("Received %s on %s", string(message), topic)
+	// Broadcast the message to subscribed clients
 	replyTextContent(w, r, http.StatusOK, "")
+	Broadcast(topic, string(message))
+}
+
+// addListenerHandler handles requests to add a listener to a topic
+func addListenerHandler(w http.ResponseWriter, r *http.Request) {
+	// Get the topic that the listener wants to subscribe to
+	topic := mux.Vars(r)["topic"]
+	// Get the information about the listener from the packet body
+	listener, err := io.ReadAll(r.Body)
+	defer r.Body.Close()
+	if err != nil {
+		replyError(w, r, http.StatusInternalServerError, "Could not add new listener")
+		return
+	}
+	log.Printf("Adding new listener %s to topic=%s", string(listener), topic)
+	// Do somethign to actually add the listener here
+	replyTextContent(w, r, http.StatusAccepted, "accepted new listener")
 }
