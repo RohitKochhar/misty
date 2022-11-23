@@ -1,4 +1,4 @@
-package actions
+package utils
 
 import (
 	"bytes"
@@ -8,14 +8,14 @@ import (
 )
 
 // replyTextContent wraps text content in a HTTP response and sends it
-func replyTextContent(w http.ResponseWriter, r *http.Request, status int, content string) {
+func ReplyTextContent(w http.ResponseWriter, r *http.Request, status int, content string) {
 	w.Header().Set("Content-Type", "text/plain")
 	w.WriteHeader(status)
 	w.Write([]byte(content + "\n"))
 }
 
 // replyError wraps text content in an HTTP error response and sends it
-func replyError(w http.ResponseWriter, r *http.Request, status int, message string) {
+func ReplyError(w http.ResponseWriter, r *http.Request, status int, message string) {
 	log.Printf("%s %s: Error: %d %s", r.URL, r.Method, status, message)
 	http.Error(w, http.StatusText(status), status)
 }

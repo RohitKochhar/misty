@@ -5,12 +5,18 @@ import (
 	"io"
 	"log"
 	"net/http"
+	"rohitsingh/misty-cli/utils"
 
 	"github.com/gorilla/mux"
 )
 
 // SubscribeAction creates a server to accept messages by the broker
 func SubscribeAction(brokerHost string, brokerPort int, topic string) error {
+	// Sanitize the topic
+	topic, err := utils.SanitizeTopic(topic)
+	if err != nil {
+		return err
+	}
 	// Define the parameters used by the listener as a HTTP server
 	// ToDo: Dynamically get configuration
 	listenerHost := "localhost"
@@ -25,7 +31,7 @@ func SubscribeAction(brokerHost string, brokerPort int, topic string) error {
 	log.Println("Subscibe result successful!")
 	// Create a HTTP server that only listens on the given topic
 	r := mux.NewRouter()
-	r.HandleFunc(fmt.Sprintf("/%s", topic), subscribeHandler).Methods(http.MethodPut)
+	r.HandleFunc(topic, subscribeHandler).Methods(http.MethodPut)
 	log.Printf("listening for messages on %s...\n", topic)
 	// ToDo: Add context handling for graceful shutdown
 	if err := http.ListenAndServe(fmt.Sprintf(":%d", listenerPort), r); err != nil {
@@ -40,19 +46,24 @@ func subscribeHandler(w http.ResponseWriter, r *http.Request) {
 	message, err := io.ReadAll(r.Body)
 	defer r.Body.Close()
 	if err != nil {
-		replyError(w, r, http.StatusInternalServerError, "could not accept packet")
+		utils.ReplyError(w, r, http.StatusInternalServerError, "could not accept packet")
 	}
-	replyTextContent(w, r, http.StatusAccepted, "accepted packet")
+	utils.ReplyTextContent(w, r, http.StatusAccepted, "accepted packet")
 	log.Printf("[RECEIVED ON %s]: %s", r.URL.Path, string(message))
 }
 
 // requestSubscribe sends a message to the broker letting it know
 // that this client wants to receive messages for a given topic
 func requestSubscribe(brokerHost string, brokerPort int, listenerHost string, listenerPort int, topic string) error {
+	// Sanitize the topic
+	topic, err := utils.SanitizeTopic(topic)
+	if err != nil {
+		return err
+	}
 	// Send a PUT request to the broker containing listener server information
-	httpUrl := fmt.Sprintf("http://%s:%d/listeners/%s/add", brokerHost, brokerPort, topic)
+	httpUrl := fmt.Sprintf("http://%s:%d/listeners%s/add", brokerHost, brokerPort, topic)
 	message := fmt.Sprintf("http://%s:%d", listenerHost, listenerPort)
-	if err := PutString(httpUrl, message, http.StatusAccepted); err != nil {
+	if err := utils.PutString(httpUrl, message, http.StatusAccepted); err != nil {
 		return err
 	}
 	return nil
