@@ -5,7 +5,10 @@ import (
 	"io"
 	"log"
 	"net/http"
+	"os"
+	"os/signal"
 	"rohitsingh/misty-go/utils"
+	"syscall"
 
 	"github.com/gorilla/mux"
 )
@@ -19,7 +22,8 @@ type Listener struct {
 	brokerUrl    string   // URL to send broker requests to (no trailing "/")
 	topics       []string // A list of all topics the client is subscribed to
 
-	errCh chan error // Channel to receive errors on
+	errCh  chan error     // Channel to receive errors on
+	exitCh chan os.Signal // Channel to receive exit signals on
 }
 
 func NewListener(host string, port int) *Listener {
@@ -85,6 +89,8 @@ func (l *Listener) Listen() error {
 	}
 	// Create goroutine resources
 	l.errCh = make(chan error)
+	l.exitCh = make(chan os.Signal, 1)
+	signal.Notify(l.exitCh, os.Interrupt, syscall.SIGTERM)
 	go func() {
 		if err := http.ListenAndServe(fmt.Sprintf(":%d", l.listenerPort), r); err != nil {
 			l.errCh <- err
@@ -97,8 +103,14 @@ func (l *Listener) Listen() error {
 			return fmt.Errorf("couldn't remove listener from broker list due to error: %q", err)
 		}
 		return err
+	case <-l.exitCh:
+		log.Println("Received termination signal, closing listener...")
+		if err := l.Close(); err != nil {
+			return fmt.Errorf("couldn't remove listener from broker list due to error: %q", err)
+		}
+		log.Println("Successfully removed listener from broker list")
 	}
-
+	return nil
 }
 
 // ToDo: Remove this and make it a user defined function
