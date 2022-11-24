@@ -24,14 +24,12 @@ func main() {
 }
 
 func initConfig() error {
-	// The default cfgFile should be placed at $HOME/.misty.yaml
+	// The default cfgFile should be placed at $(pwd)/.misty.yaml
 	// ToDo: Allow the user to specify where the cfgFile is
-	home, err := os.UserHomeDir()
+	cfgFilepath, err := os.Getwd()
 	if err != nil {
-		return fmt.Errorf("error while initializing configuration: %q", err)
+		return err
 	}
-	// cfgFilepath := home
-	cfgFilepath := home + "/Development/F22/misty/broker"
 	viper.AddConfigPath(cfgFilepath)
 	viper.SetConfigType("yaml")
 	viper.SetConfigName(".misty")
