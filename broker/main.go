@@ -25,7 +25,6 @@ func main() {
 
 func initConfig() error {
 	// The default cfgFile should be placed at $(pwd)/.misty.yaml
-	// ToDo: Allow the user to specify where the cfgFile is
 	cfgFilepath, err := os.Getwd()
 	if err != nil {
 		return err

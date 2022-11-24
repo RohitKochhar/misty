@@ -18,11 +18,29 @@ var repo repository.Repository
 // Run configures a HTTP server and listens for incoming requests
 func Run() error {
 	// Create a repository to contain listener data
-	// ToDo: Add handling to change repo type depending on config
-	repo = repository.NewInMemoryRepository()
 	// Load configuration variables from viper
-	host := viper.GetString("host")
-	port := viper.GetInt("port")
+	var (
+		host     string
+		port     int
+		repoType string
+	)
+	// If no variables are specified, use defaults
+	if host = viper.GetString("host"); host == "" {
+		host = "localhost"
+	}
+	if port = viper.GetInt("port"); port == 0 {
+		port = 1315
+	}
+	if repoType = viper.GetString("repoType"); repoType == "" {
+		repoType = "inMemory"
+	}
+	switch repoType {
+	case "inMemory":
+		repo = repository.NewInMemoryRepository()
+	default:
+		fmt.Println("Invalid option provided for \"repoType\", defaulting to \"inMemory\" (options are \"inMemory\")")
+	}
+
 	log.Printf("Creating misty broker at http://%s:%d...\n", host, port)
 	// Create a mux and listen and serve on it
 	r := NewMux()
