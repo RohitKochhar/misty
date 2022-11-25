@@ -91,7 +91,7 @@ func (l *Listener) Listen() error {
 	// Create goroutine resources
 	l.errCh = make(chan error)
 	l.exitCh = make(chan os.Signal, 1)
-	signal.Notify(l.exitCh, os.Interrupt, syscall.SIGTERM)
+	signal.Notify(l.exitCh, os.Interrupt, syscall.SIGINT, syscall.SIGTERM)
 	go func() {
 		if err := http.ListenAndServe(fmt.Sprintf(":%d", l.listenerPort), r); err != nil {
 			l.errCh <- err

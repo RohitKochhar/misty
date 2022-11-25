@@ -47,7 +47,7 @@ func SubscribeAction(brokerHost string, brokerPort int, topic string) error {
 	// Create goroutine resources
 	errCh := make(chan error)
 	exitCh := make(chan os.Signal, 1)
-	signal.Notify(exitCh, os.Interrupt, syscall.SIGTERM)
+	signal.Notify(exitCh, os.Interrupt, syscall.SIGINT, syscall.SIGTERM, syscall.SIGKILL)
 	go func() {
 		if err := http.ListenAndServe(fmt.Sprintf(":%d", listenerPort), r); err != nil {
 			errCh <- err

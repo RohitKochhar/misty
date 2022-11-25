@@ -1,0 +1,42 @@
+version: '3'
+
+services:
+  # broker can be build from project root with:
+  #   docker build -t broker -f broker/Dockerfile .
+  broker:
+    image: broker
+  # entrypoint can be build from project root with:
+  #   docker build -t misty-entrypoint -f examples/load-balancer/entrypoint/Dockerfile .
+  entrypoint:
+    image: misty-entrypoint
+    ports:
+      - "2395:2395"
+    depends_on:
+      - broker
+  # logger can be build from project root with:
+  #   docker build -t misty-logger -f examples/load-balancer/logger/Dockerfile .
+  logger:
+    image: misty-logger
+    depends_on:
+      - broker
+  # Create 3 sample services
+  # sample-service can be build from project root with:
+  #   docker build -t misty-sample-service -f examples/load-balancer/sample-services/Dockerfile .
+  service-0:
+    image: misty-sample-service
+    environment:
+      - SERVICE_NUMBER=0
+    depends_on:
+      - broker
+  service-1:
+    image: misty-sample-service
+    environment:
+      - SERVICE_NUMBER=1
+    depends_on:
+      - broker
+  service-2:
+    image: misty-sample-service
+    environment:
+      - SERVICE_NUMBER=2
+    depends_on:
+      - broker

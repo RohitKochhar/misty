@@ -51,13 +51,14 @@ func addListenerHandler(w http.ResponseWriter, r *http.Request) {
 		replyError(w, r, http.StatusInternalServerError, "Could not add new listener")
 		return
 	}
-	log.Printf("Adding new listener %s to topic=%s", string(listener), topic)
+
 	// Add the listener to the repository
 	if err := repo.NewListener(string(listener)); err != nil {
 		log.Printf("error while adding listener (%s): %q", string(listener), err)
 	} else {
 		// Check if we are handling a basic connection request or a connect and subscribe
 		if !isConnectionRequest {
+			log.Printf("Adding new listener %s to topic=%s", string(listener), topic)
 			// If adding the listener was successful, add the topic to it
 			if err := repo.AddTopicToListener(string(listener), topic); err != nil {
 				log.Printf("error while adding topic (%s) to listener (%s): %q", topic, string(listener), err)
