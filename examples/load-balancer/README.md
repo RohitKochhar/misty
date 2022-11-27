@@ -64,7 +64,6 @@ broker_1      | 2022/11/25 17:34:49 Received ily honeybear on service-1
 broker_1      | 2022/11/25 17:34:49 Broadcasting ily honeybear to http://service-1:2398/service-1
 service-1_1   | 2022/11/25 17:34:49 [RECEIVED ON /service-1]: ily honeybear
 
-
 $ curl -X PUT localhost:2395/ -d "pure comedy"
 broker_1      | 2022/11/25 17:35:52 Received Received message="pure comedy", forwarding to service-2 on logs
 broker_1      | 2022/11/25 17:35:52 Broadcasting Received message="pure comedy", forwarding to service-2 to http://logger:2396/logs
@@ -73,6 +72,14 @@ entrypoint_1  | 2022/11/25 17:35:52 Successfully published Received message="pur
 broker_1      | 2022/11/25 17:35:52 Received pure comedy on service-2
 broker_1      | 2022/11/25 17:35:52 Broadcasting pure comedy to http://service-2:2399/service-2
 service-2_1   | 2022/11/25 17:35:52 [RECEIVED ON /service-2]: pure comedy
+```
+
+Alternatively, you can run the following mini-bash script:
+
+```bash
+curl -X PUT localhost:2395/ -d "fear fun"
+curl -X PUT localhost:2395/ -d "ily honeybear"
+curl -X PUT localhost:2395/ -d "pure comedy"
 ```
 
 ## System Architecture Diagram
