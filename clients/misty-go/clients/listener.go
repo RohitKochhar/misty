@@ -7,10 +7,10 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
-	utils "rohitsingh/misty-utils"
 	"syscall"
 
 	"github.com/gorilla/mux"
+	"github.com/rohitkochhar/reed-http-utills"
 )
 
 // Listener type implements a Listener interface that
@@ -43,7 +43,7 @@ func NewListener(host string, port int) *Listener {
 func (l *Listener) Connect(host string, port int) error {
 	// Send a PUT request to the broker to add this client to broker list
 	httpUrl := fmt.Sprintf("http://%s:%d/listeners/_/add", host, port)
-	if err := utils.PutString(httpUrl, l.listenerUrl, http.StatusAccepted); err != nil {
+	if err := reed.PutString(httpUrl, l.listenerUrl, []int{http.StatusAccepted}); err != nil {
 		return err
 	}
 	// Add the information about the broker to the listener object
@@ -56,7 +56,7 @@ func (l *Listener) Connect(host string, port int) error {
 func (l *Listener) Close() error {
 	// Send a DELETE request to the broker to delete this client from the broker list
 	httpUrl := l.brokerUrl + "/listeners/delete"
-	if err := utils.DeleteString(httpUrl, l.listenerUrl, http.StatusOK); err != nil {
+	if err := reed.DeleteString(httpUrl, l.listenerUrl, []int{http.StatusOK}); err != nil {
 		return err
 	}
 	return nil
@@ -65,13 +65,13 @@ func (l *Listener) Close() error {
 // Subscribe method connects the listener to a topic
 func (l *Listener) Subscribe(topic string) error {
 	// Sanitize the topic to make sure it will fit the HTTP protocol
-	sanitizedTopic, err := utils.SanitizeTopic(topic)
+	sanitizedTopic, err := SanitizeTopic(topic)
 	if err != nil {
 		return fmt.Errorf("error while sanitizing topic: %q", err)
 	}
 	// Send a PUT request to the broker to add topic to this clients subscription list
 	httpUrl := l.brokerUrl + "/listeners" + sanitizedTopic + "/subscribe"
-	if err := utils.PutString(httpUrl, l.listenerUrl, http.StatusAccepted); err != nil {
+	if err := reed.PutString(httpUrl, l.listenerUrl, []int{http.StatusAccepted}); err != nil {
 		return fmt.Errorf("error while trying to subscribe to topic=%s: %q", topic, err)
 	}
 	l.topics = append(l.topics, sanitizedTopic)
@@ -120,16 +120,16 @@ func onMessageReceive(w http.ResponseWriter, r *http.Request) {
 	message, err := io.ReadAll(r.Body)
 	defer r.Body.Close()
 	if err != nil {
-		utils.ReplyError(w, r, http.StatusInternalServerError, "could not accept packet")
+		reed.ReplyError(w, r, http.StatusInternalServerError, "could not accept packet")
 	}
-	utils.ReplyTextContent(w, r, http.StatusAccepted, "accepted packet")
+	reed.ReplyTextContent(w, r, http.StatusAccepted, "accepted packet")
 	log.Printf("[RECEIVED ON %s]: %s", r.URL.Path, string(message))
 }
 
 // brokerDownHandle handle closes the listener's server
 func brokerDownHandle(w http.ResponseWriter, r *http.Request) {
 	// Let the server know we got the message
-	utils.ReplyTextContent(w, r, http.StatusAccepted, "acknowledged")
+	reed.ReplyTextContent(w, r, http.StatusAccepted, "acknowledged")
 	// Log the server closure
 	log.Printf("misty broker closed, closing listener instance")
 	// Wait a second

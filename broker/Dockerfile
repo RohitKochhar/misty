@@ -6,8 +6,6 @@ WORKDIR /src
 # Load in the module packages first to cache them
 COPY  ./broker/go.mod ./broker/go.sum  /src/
 
-COPY ./misty-utils /misty-utils
-
 RUN go mod download
 
 # Load in the rest of the packages

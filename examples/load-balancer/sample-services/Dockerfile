@@ -9,8 +9,6 @@ WORKDIR /src
 # Load in the module packages first to cache them
 COPY  ./examples/load-balancer/sample-services/go.mod ./examples/load-balancer/sample-services/go.sum /src/
 
-COPY ./misty-utils /misty-utils
-
 COPY ./clients/misty-go/ /clients
 
 RUN go mod download

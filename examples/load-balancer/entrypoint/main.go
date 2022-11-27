@@ -7,9 +7,9 @@ import (
 	"net/http"
 	"os"
 	"rohitsingh/misty-go/clients"
-	utils "rohitsingh/misty-utils"
 
 	"github.com/gorilla/mux"
+	"github.com/rohitkochhar/reed-http-utills"
 )
 
 /*
@@ -44,7 +44,7 @@ func handlePut(w http.ResponseWriter, r *http.Request) {
 	message, err := io.ReadAll(r.Body)
 	defer r.Body.Close()
 	if err != nil {
-		utils.ReplyError(w, r, http.StatusInternalServerError,
+		reed.ReplyError(w, r, http.StatusInternalServerError,
 			"could not accept packet")
 	}
 	// Get the client that we are sending the information to
@@ -60,5 +60,5 @@ func handlePut(w http.ResponseWriter, r *http.Request) {
 	// Send the message to the appropriate client
 	publisher.Publish("broker", 1315, fmt.Sprintf("/service-%d", targetClient), string(message))
 	// Reply back to the sender that the package was received
-	// utils.ReplyError(w, r, http.StatusOK, "acknowledge")
+	// reed.ReplyError(w, r, http.StatusOK, "acknowledge")
 }

@@ -4,7 +4,8 @@ import (
 	"fmt"
 	"log"
 	"net/http"
-	utils "rohitsingh/misty-utils"
+
+	"github.com/rohitkochhar/reed-http-utills"
 )
 
 // Broadcast sends a published message to all subscribed clients
@@ -18,7 +19,7 @@ func Broadcast(topic string, message string) error {
 		// Send a PUT request to each listener
 		httpUrl := fmt.Sprintf("%s/%s", l, topic)
 		log.Printf("Broadcasting %s to %s", message, httpUrl)
-		if err := utils.PutString(httpUrl, message, http.StatusAccepted); err != nil {
+		if err := reed.PutString(httpUrl, message, []int{http.StatusAccepted}); err != nil {
 			return err
 		}
 	}
@@ -39,7 +40,7 @@ func CloseConnections() error {
 		log.Printf("Letting %s know broker is going down", l)
 		// Let the client know we are going down, but we can't
 		// handle errors (since we are going down)
-		_ = utils.PutString(httpUrl, "server going down!", http.StatusAccepted)
+		_ = reed.PutString(httpUrl, "server going down!", []int{http.StatusAccepted})
 	}
 	return nil
 }

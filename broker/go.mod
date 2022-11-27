@@ -5,10 +5,7 @@ go 1.19
 require (
 	github.com/gorilla/mux v1.8.0
 	github.com/spf13/viper v1.14.0
-	rohitsingh/misty-utils v0.0.0
 )
-
-replace rohitsingh/misty-utils => ../misty-utils
 
 require (
 	github.com/fsnotify/fsnotify v1.6.0 // indirect
@@ -17,6 +14,7 @@ require (
 	github.com/mitchellh/mapstructure v1.5.0 // indirect
 	github.com/pelletier/go-toml v1.9.5 // indirect
 	github.com/pelletier/go-toml/v2 v2.0.5 // indirect
+	github.com/rohitkochhar/reed-http-utills v0.1.2 // indirect
 	github.com/spf13/afero v1.9.2 // indirect
 	github.com/spf13/cast v1.5.0 // indirect
 	github.com/spf13/jwalterweatherman v1.1.0 // indirect

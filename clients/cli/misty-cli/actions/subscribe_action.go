@@ -7,17 +7,17 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
-	utils "rohitsingh/misty-utils"
 	"syscall"
 
 	"github.com/gorilla/mux"
+	"github.com/rohitkochhar/reed-http-utills"
 	"github.com/spf13/viper"
 )
 
 // SubscribeAction creates a server to accept messages by the broker
 func SubscribeAction(brokerHost string, brokerPort int, topic string) error {
 	// Sanitize the topic
-	topic, err := utils.SanitizeTopic(topic)
+	topic, err := SanitizeTopic(topic)
 	if err != nil {
 		return err
 	}
@@ -47,7 +47,7 @@ func SubscribeAction(brokerHost string, brokerPort int, topic string) error {
 	// Create goroutine resources
 	errCh := make(chan error)
 	exitCh := make(chan os.Signal, 1)
-	signal.Notify(exitCh, os.Interrupt, syscall.SIGINT, syscall.SIGTERM, syscall.SIGKILL)
+	signal.Notify(exitCh, os.Interrupt, syscall.SIGINT, syscall.SIGTERM)
 	go func() {
 		if err := http.ListenAndServe(fmt.Sprintf(":%d", listenerPort), r); err != nil {
 			errCh <- err
@@ -75,9 +75,9 @@ func subscribeHandler(w http.ResponseWriter, r *http.Request) {
 	message, err := io.ReadAll(r.Body)
 	defer r.Body.Close()
 	if err != nil {
-		utils.ReplyError(w, r, http.StatusInternalServerError, "could not accept packet")
+		reed.ReplyError(w, r, http.StatusInternalServerError, "could not accept packet")
 	}
-	utils.ReplyTextContent(w, r, http.StatusAccepted, "accepted packet")
+	reed.ReplyTextContent(w, r, http.StatusAccepted, "accepted packet")
 	log.Printf("[RECEIVED ON %s]: %s", r.URL.Path, string(message))
 }
 
@@ -85,14 +85,14 @@ func subscribeHandler(w http.ResponseWriter, r *http.Request) {
 // that this client wants to receive messages for a given topic
 func requestSubscribe(brokerHost string, brokerPort int, listenerHost string, listenerPort int, topic string) error {
 	// Sanitize the topic
-	topic, err := utils.SanitizeTopic(topic)
+	topic, err := SanitizeTopic(topic)
 	if err != nil {
 		return err
 	}
 	// Send a PUT request to the broker containing listener server information
 	httpUrl := fmt.Sprintf("http://%s:%d/listeners%s/add", brokerHost, brokerPort, topic)
 	message := fmt.Sprintf("http://%s:%d", listenerHost, listenerPort)
-	if err := utils.PutString(httpUrl, message, http.StatusAccepted); err != nil {
+	if err := reed.PutString(httpUrl, message, []int{http.StatusAccepted}); err != nil {
 		return err
 	}
 	return nil
@@ -104,8 +104,27 @@ func removeListener(brokerHost string, brokerPort int, listenerHost string, list
 	// Send a DELETE request to the server
 	httpUrl := fmt.Sprintf("http://%s:%d/listeners/delete", brokerHost, brokerPort)
 	message := fmt.Sprintf("%s:%d", listenerHost, listenerPort)
-	if err := utils.DeleteString(httpUrl, message, http.StatusOK); err != nil {
+	if err := reed.DeleteString(httpUrl, message, []int{http.StatusOK}); err != nil {
 		return err
 	}
 	return nil
+}
+
+// SanitizeTopic parses a topic string to ensure that
+// all topics are formatted uniformly with the form"
+// "/{TOPIC}/{SUBTOPIC}/{SUBSUBTOPIC}" (leading /, no trailing /)
+func SanitizeTopic(topic string) (string, error) {
+	var sanitizedTopic string
+	// Check if the last character is a dash
+	if topic[len(topic)-1] == '/' {
+		sanitizedTopic = topic[:len(topic)-1]
+	} else {
+		sanitizedTopic = topic
+	}
+	// Check if the first character in the topic is a /
+	if topic[0] != '/' {
+		sanitizedTopic = fmt.Sprintf("/%s", sanitizedTopic)
+	}
+
+	return sanitizedTopic, nil
 }

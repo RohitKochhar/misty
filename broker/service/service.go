@@ -48,7 +48,7 @@ func Run() error {
 	// Create goroutine resources
 	errCh := make(chan error)
 	exitCh := make(chan os.Signal, 1)
-	signal.Notify(exitCh, os.Interrupt, syscall.SIGINT, syscall.SIGTERM, syscall.SIGKILL)
+	signal.Notify(exitCh, os.Interrupt, syscall.SIGINT, syscall.SIGTERM)
 	// Run server as a goroutine
 	go func() {
 		if err := http.ListenAndServe(fmt.Sprintf(":%d", port), r); err != nil {
